@@ -38,11 +38,13 @@ hidden-wishes/
 ## Installation
 
 1. **Clone or navigate to the project directory**:
+
    ```bash
    cd hidden-wishes
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
@@ -55,6 +57,7 @@ hidden-wishes/
 ## Running the Application
 
 Start the server:
+
 ```bash
 npm start
 ```
@@ -62,6 +65,7 @@ npm start
 The application will be available at **http://localhost:3000**
 
 You should see output like:
+
 ```
 ✨ Hidden Wishes app running at http://localhost:3000
 📚 Database contains 20 wishes
@@ -70,12 +74,15 @@ You should see output like:
 ## API Endpoints
 
 ### GET /api/wishes/random
+
 Fetch random wishes from the database.
 
 **Query Parameters:**
+
 - `count` (optional): Number of wishes to return (1-10, default: 3)
 
 **Response:**
+
 ```json
 [
   {
@@ -87,9 +94,11 @@ Fetch random wishes from the database.
 ```
 
 ### POST /api/wishes
+
 Submit a new wish.
 
 **Request Body:**
+
 ```json
 {
   "text": "I wish to travel the world someday."
@@ -97,12 +106,14 @@ Submit a new wish.
 ```
 
 **Requirements:**
+
 - Text is required and must be a non-empty string
 - Maximum 500 characters
 - Whitespace is trimmed
 - HTML/script tags are sanitized
 
 **Response (201 Created):**
+
 ```json
 {
   "id": 21,
@@ -112,9 +123,11 @@ Submit a new wish.
 ```
 
 ### GET /api/health
+
 Health check endpoint.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -126,11 +139,11 @@ Health check endpoint.
 
 ### wishes table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | INTEGER (PRIMARY KEY) | Auto-incrementing wish ID |
-| text | TEXT | The wish content (sanitized) |
-| created_at | DATETIME | Timestamp when wish was created |
+| Column     | Type                  | Description                     |
+| ---------- | --------------------- | ------------------------------- |
+| id         | INTEGER (PRIMARY KEY) | Auto-incrementing wish ID       |
+| text       | TEXT                  | The wish content (sanitized)    |
+| created_at | DATETIME              | Timestamp when wish was created |
 
 ## Security Features
 
@@ -151,20 +164,25 @@ Health check endpoint.
 ## Customization
 
 ### Change the port
+
 Set the `PORT` environment variable:
+
 ```bash
 PORT=4000 npm start
 ```
 
 ### Modify styling
+
 Edit `public/styles.css` to customize colors, fonts, and animations.
 
 ### Add more sample wishes
+
 Edit the `sampleWishes` array in `seed.js` and run `node seed.js` again.
 
 ## Limitations & Future Improvements
 
 ### Current Limitations
+
 - No moderation system (wishes are published immediately)
 - No way to edit or delete wishes after submission
 - Database stored locally (not suitable for multi-server deployments)
@@ -191,3 +209,5 @@ MIT
 ## Author
 
 Created as a peaceful platform for anonymous wishes.
+
+# MakeAWishProject
