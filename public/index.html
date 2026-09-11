@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hidden Wishes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">Hidden Wishes</h1>
+      <p class="subtitle">Some wishes are easier to share when nobody knows they're yours.</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Wishes display -->
+      <section class="wishes-section">
+        <div class="wishes-container" id="wishesContainer">
+          <!-- Wishes will be loaded here -->
+        </div>
+        <button class="btn btn-refresh" id="refreshBtn">Show me more wishes</button>
+      </section>
+
+      <!-- Submit wish section -->
+      <section class="submit-section">
+        <h2 class="section-title">Share a wish</h2>
+        <form class="wish-form" id="wishForm">
+          <div class="form-group">
+            <label class="sr-only" for="wishInput">Your wish</label>
+            <textarea
+              id="wishInput"
+              class="wish-textarea"
+              placeholder="What's on your mind? A hope, dream, or thought..."
+              maxlength="500"
+              aria-describedby="charCountStatus"
+              required
+            ></textarea>
+            <div class="char-count" id="charCountStatus" aria-live="polite">
+              <span id="charCount">0</span>/500
+            </div>
+          </div>
+          <button type="submit" class="btn btn-submit">Release your wish</button>
+          <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Anonymous wishes, real hearts.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

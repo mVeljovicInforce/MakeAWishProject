@@ -1,0 +1,21 @@
+{
+  "name": "hidden-wishes",
+  "version": "1.0.0",
+  "description": "Anonymous wishes application - share your wishes privately",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "wishes",
+    "anonymous",
+    "minimal"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  }
+}
