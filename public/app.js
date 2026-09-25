@@ -108,7 +108,8 @@ async function loadWishes() {
       throw new Error('Failed to load wishes');
     }
 
-    const wishes = await response.json();
+    const data = await response.json();
+    const wishes = data.wishes || [];
 
     // Clear container
     wishesContainer.innerHTML = '';

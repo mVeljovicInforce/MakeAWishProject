@@ -61,8 +61,12 @@ async function seedDatabase() {
     if (currentCount === 0) {
       console.log('🌱 Seeding database with sample wishes...');
 
-      for (const wish of sampleWishes) {
-        await addWish(wish);
+      const now = Date.now();
+      for (let i = 0; i < sampleWishes.length; i++) {
+        const wish = sampleWishes[i];
+        const daysAgo = Math.floor(i / 2);
+        const timestamp = new Date(now - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+        await addWish(wish, timestamp);
       }
 
       const finalCount = await getWishCount();

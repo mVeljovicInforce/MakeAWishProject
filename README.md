@@ -33,7 +33,21 @@ hidden-wishes/
 - **Backend**: Node.js + Express.js
 - **Database**: SQLite3
 - **Frontend**: Vanilla HTML, CSS, and JavaScript
-- **Security**: Input sanitization, parameterized SQL queries
+- **Security**: Backend validation, parameterized SQL queries, and safe DOM rendering
+
+## Prerequisites
+
+Before you can run Hidden Wishes, ensure you have the following installed:
+
+- **Node.js**: 14.0.0 or higher
+- **npm**: 6.0.0 or higher
+
+You can check your versions by running:
+
+```bash
+node --version
+npm --version
+```
 
 ## Installation
 
@@ -84,13 +98,15 @@ Fetch random wishes from the database.
 **Response:**
 
 ```json
-[
-  {
-    "id": 1,
-    "text": "I wish my father knew how much I appreciate him.",
-    "created_at": "2025-01-15T10:30:00.000Z"
-  }
-]
+{
+  "wishes": [
+    {
+      "id": 1,
+      "text": "I wish my father knew how much I appreciate him.",
+      "created_at": "2025-01-15T10:30:00.000Z"
+    }
+  ]
+}
 ```
 
 ### POST /api/wishes
@@ -110,15 +126,18 @@ Submit a new wish.
 - Text is required and must be a non-empty string
 - Maximum 500 characters
 - Whitespace is trimmed
-- HTML/script tags are sanitized
+- Text is trimmed before storage; the frontend renders it as plain text
 
 **Response (201 Created):**
 
 ```json
 {
-  "id": 21,
-  "text": "I wish to travel the world someday.",
-  "created_at": "2025-01-15T14:45:00.000Z"
+  "success": true,
+  "wish": {
+    "id": 21,
+    "text": "I wish to travel the world someday.",
+    "created_at": "2025-01-15T14:45:00.000Z"
+  }
 }
 ```
 
@@ -142,16 +161,15 @@ Health check endpoint.
 | Column     | Type                  | Description                     |
 | ---------- | --------------------- | ------------------------------- |
 | id         | INTEGER (PRIMARY KEY) | Auto-incrementing wish ID       |
-| text       | TEXT                  | The wish content (sanitized)    |
+| text       | TEXT                  | The original trimmed wish text  |
 | created_at | DATETIME              | Timestamp when wish was created |
 
 ## Security Features
 
 - **Input validation**: All input is validated on the backend
-- **Sanitization**: HTML/script tags are escaped to prevent injection
+- **Safe rendering**: Wish content is rendered with `textContent`, so markup is displayed as plain text
 - **Parameterized queries**: SQL is protected against injection attacks
 - **No personal data**: Application does not collect or store any identifying information
-- **CORS-friendly**: API works with modern fetch requests
 
 ## Design Philosophy
 

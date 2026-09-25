@@ -28,7 +28,7 @@ app.get('/api/wishes/random', async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count) || 3, 1), 10);
     const wishes = await getRandomWishes(count);
-    res.json(wishes);
+    res.json({ wishes });
   } catch (err) {
     console.error('Error fetching wishes:', err);
     res.status(500).json({ error: 'Failed to fetch wishes' });
@@ -56,7 +56,7 @@ app.post('/api/wishes', async (req, res) => {
     }
 
     const wish = await addWish(trimmed);
-    res.status(201).json(wish);
+    res.status(201).json({ success: true, wish });
   } catch (err) {
     console.error('Error adding wish:', err);
     res.status(500).json({ error: 'Failed to add wish' });

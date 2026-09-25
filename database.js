@@ -19,6 +19,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 db.configure('busyTimeout', 10000);
 
+function normalizeTimestamp(timestamp) {
+  if (!timestamp) return null;
+  if (timestamp.includes('T')) return timestamp;
+  return timestamp.replace(' ', 'T') + '.000Z';
+}
+
 function initializeDatabase() {
   return new Promise((resolve, reject) => {
     db.serialize(() => {
@@ -37,12 +43,17 @@ function initializeDatabase() {
   });
 }
 
-function addWish(text) {
+function addWish(text, createdAt = null) {
   return new Promise((resolve, reject) => {
-    const stmt = db.prepare('INSERT INTO wishes (text) VALUES (?)');
-    stmt.run(text, function(err) {
+    const isoTimestamp = new Date().toISOString();
+    const stmt = createdAt
+      ? db.prepare('INSERT INTO wishes (text, created_at) VALUES (?, ?)')
+      : db.prepare('INSERT INTO wishes (text) VALUES (?)');
+
+    const params = createdAt ? [text, createdAt] : [text];
+    stmt.run(...params, function(err) {
       if (err) reject(err);
-      else resolve({ id: this.lastID, text, created_at: new Date().toISOString() });
+      else resolve({ id: this.lastID, text, created_at: isoTimestamp });
     });
     stmt.finalize();
   });
@@ -55,7 +66,13 @@ function getRandomWishes(count = 3) {
       [count],
       (err, rows) => {
         if (err) reject(err);
-        else resolve(rows || []);
+        else {
+          const normalized = (rows || []).map(row => ({
+            ...row,
+            created_at: normalizeTimestamp(row.created_at)
+          }));
+          resolve(normalized);
+        }
       }
     );
   });
