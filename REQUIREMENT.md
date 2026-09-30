@@ -581,3 +581,50 @@ When modifying the project:
 - Avoid changing working functionality unless required.
 - Test existing behavior after meaningful changes.
 - Update this requirement document when product behavior intentionally changes.
+
+### FR-010 — React to a Wish
+
+A visitor must be able to leave one supportive reaction on a wish.
+
+The reaction represents that the wish touched or resonated with the visitor.
+
+#### Behavior
+
+- The reaction must be represented visually as a shooting-star control.
+- The reaction must not be presented as a traditional "Like".
+- Suggested interaction text: `Send a little light`.
+- A visitor may react only once to a particular wish.
+- The reaction count must be stored by the backend.
+- The reaction count must never be displayed publicly.
+- No ranking, score, popularity badge, or visible reaction total may be shown.
+- Reaction data may later be used internally to help select featured wishes for the landing page.
+
+#### Early Visitor Tracking
+
+For the initial implementation, the frontend may use browser `localStorage` to remember which wishes the current browser has already reacted to.
+
+This is an MVP convenience and must not be treated as strong identity or abuse prevention.
+
+A more robust solution may be introduced before public production deployment.
+
+#### Accessibility
+
+The reaction control must:
+
+- be keyboard accessible
+- have a visible focus state
+- include an accessible label
+- not depend only on hover
+- respect `prefers-reduced-motion`
+
+Suggested accessible label:
+
+`Send a little light to this wish`
+
+#### Validation / API
+
+The backend must validate the referenced wish before recording a reaction.
+
+Requests for non-existent wishes must fail with an appropriate HTTP status code.
+
+Repeated reactions from the same visitor mechanism should not increase the stored count more than once.
