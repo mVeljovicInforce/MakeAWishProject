@@ -23,6 +23,7 @@
   --starlight: #f4e6bd;     /* restrained pale glow */
   --line: rgba(236, 230, 220, 0.12);
   --danger: #e9a9a0;
+  --warm: #d8c39a;          /* quiet warm tone for gentle notices */
 
   --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', serif;
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -64,6 +65,11 @@ body::before {
 @keyframes drift {
   from { transform: translate3d(-2%, -1%, 0) scale(1); }
   to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+}
+
+::selection {
+  background: rgba(182, 168, 230, 0.3);
+  color: var(--text);
 }
 
 a {
@@ -114,9 +120,10 @@ a:hover {
 
 .site-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 0 16px;
   padding: 22px var(--gutter);
   max-width: 1120px;
   width: 100%;
@@ -167,7 +174,9 @@ main {
 }
 
 .page-narrow {
-  max-width: 680px;
+  /* content measure is 680px; the side gutters sit outside it */
+  max-width: calc(680px + 2 * var(--gutter));
+  padding-top: clamp(16px, 4vh, 40px);
 }
 
 .site-footer {
@@ -318,7 +327,7 @@ main {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: clamp(36px, 9vh, 80px);
+  margin-bottom: clamp(28px, 6vh, 56px);
 }
 
 .hero-question {
@@ -326,13 +335,14 @@ main {
   font-weight: 400;
   line-height: 1.25;
   max-width: 18ch;
-  margin-bottom: clamp(40px, 9vh, 80px);
+  text-wrap: balance;
+  margin-bottom: clamp(36px, 7vh, 64px);
 }
 
 .featured {
-  max-width: 34ch;
+  max-width: min(100%, 27rem); /* rem, not ch: ch here would be measured in the 16px sans font */
   min-height: 7.5em;
-  margin-bottom: 36px;
+  margin-bottom: 44px;
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
@@ -340,6 +350,7 @@ main {
   font-size: clamp(1.3rem, 3.4vw, 1.85rem);
   line-height: 1.5;
   color: var(--text);
+  text-wrap: balance;
 }
 
 .featured .wish-text::before { content: '\201C'; }
@@ -393,15 +404,15 @@ main {
 .wish-card {
   break-inside: avoid;
   display: block;
-  padding: 18px 4px 22px;
-  margin-bottom: clamp(20px, 4vw, 44px);
+  padding: 18px 0 12px;
+  margin-bottom: clamp(18px, 3.5vw, 36px);
   border-top: 1px solid var(--line);
   animation: fade-up 0.7s ease both;
   animation-delay: calc(var(--i, 0) * 90ms);
 }
 
-.wish-card:nth-child(3n + 2) { padding-top: 40px; }
-.wish-card:nth-child(3n)     { padding-top: 26px; }
+.wish-card:nth-child(3n + 2) { padding-top: 32px; }
+.wish-card:nth-child(3n)     { padding-top: 24px; }
 
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(10px); }
@@ -413,6 +424,7 @@ main {
   line-height: 1.55;
   overflow-wrap: anywhere;
   white-space: pre-line;
+  text-wrap: pretty;
 }
 
 .wish-meta {
@@ -427,6 +439,12 @@ main {
 .wish-time {
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+/* Let the star label end on the same edge as the wish text. The offset is capped by the page
+   gutter so the 44px tap target never approaches the viewport edge on narrow screens. */
+.wish-meta .star-btn {
+  margin-right: calc(-1 * min(10px, var(--gutter) - 12px));
 }
 
 .explore-actions {
@@ -460,25 +478,33 @@ main {
 }
 
 .star-svg {
-  width: 30px;
-  height: 22px;
+  width: 34px;
+  height: 24px;
   overflow: visible;
 }
 
 .star-body {
   fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
   opacity: 0.75;
   transition: opacity 0.4s ease, filter 0.4s ease;
-  animation: shimmer 7s ease-in-out infinite;
+  animation: shimmer 9s ease-in-out infinite;
 }
 
 .star-trail {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.4;
+  stroke-width: 1.3;
   stroke-linecap: round;
   opacity: 0.35;
   transition: opacity 0.4s ease;
+}
+
+.star-trail-faint {
+  stroke-width: 0.8;
+  opacity: 0.18;
 }
 
 .star-dust {
@@ -499,12 +525,22 @@ main {
 .star-btn:hover .star-body,
 .star-btn:focus-visible .star-body {
   opacity: 1;
-  filter: drop-shadow(0 0 5px rgba(244, 230, 189, 0.55));
+  filter: drop-shadow(0 0 6px rgba(244, 230, 189, 0.6));
 }
 
 .star-btn:hover .star-trail,
 .star-btn:focus-visible .star-trail {
   opacity: 0.7;
+}
+
+.star-btn:hover .star-trail-faint,
+.star-btn:focus-visible .star-trail-faint {
+  opacity: 0.4;
+}
+
+.star-btn:hover .star-dust,
+.star-btn:focus-visible .star-dust {
+  opacity: 0.65;
 }
 
 /* Sent: softly illuminated, settled */
@@ -520,6 +556,8 @@ main {
 }
 
 .star-btn.is-sent .star-trail { opacity: 0.6; }
+.star-btn.is-sent .star-trail-faint { opacity: 0.35; }
+.star-btn.is-sent .star-dust { opacity: 0.3; }
 .star-btn.is-sent .star-label { opacity: 1; }
 
 /* Activation: ~750ms, quiet — brighten, trail draws, a few specks fade */
@@ -532,12 +570,28 @@ main {
   animation: trail-draw 0.75s ease-out both;
 }
 
+.star-btn.is-sending .star-trail-faint {
+  animation-name: trail-draw-faint;
+}
+
 .star-btn.is-sending .star-dust {
   animation: dust-fade 0.75s ease-out both;
 }
 
 .star-btn.is-sending .star-dust:nth-of-type(2) { animation-delay: 0.08s; }
 .star-btn.is-sending .star-dust:nth-of-type(3) { animation-delay: 0.16s; }
+.star-btn.is-sending .star-dust:nth-of-type(4) { animation-delay: 0.24s; }
+
+/* A 2px diagonal drift that settles back — no bounce */
+.star-btn.is-sending .star-svg {
+  animation: star-drift 0.75s ease-out both;
+}
+
+@keyframes star-drift {
+  0%   { transform: translate(0, 0); }
+  45%  { transform: translate(2px, -2px); }
+  100% { transform: translate(0, 0); }
+}
 
 @keyframes shimmer {
   0%, 88%, 100% { opacity: 0.75; }
@@ -553,6 +607,11 @@ main {
 @keyframes trail-draw {
   from { stroke-dashoffset: 30; opacity: 0.2; }
   to   { stroke-dashoffset: 0;  opacity: 0.6; }
+}
+
+@keyframes trail-draw-faint {
+  from { stroke-dashoffset: 30; opacity: 0.1; }
+  to   { stroke-dashoffset: 0;  opacity: 0.35; }
 }
 
 @keyframes dust-fade {
@@ -580,7 +639,7 @@ main {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   resize: vertical;
-  transition: border-color 0.4s ease, background-color 0.4s ease;
+  transition: border-color 0.4s ease, background-color 0.4s ease, box-shadow 0.5s ease;
 }
 
 .wish-textarea::placeholder {
@@ -592,11 +651,13 @@ main {
   outline: none;
   border-color: rgba(182, 168, 230, 0.6);
   background: rgba(17, 21, 42, 0.85);
+  box-shadow: 0 0 0 4px rgba(182, 168, 230, 0.07), 0 0 36px rgba(182, 168, 230, 0.1);
 }
 
+/* Keep a clear keyboard focus indicator, softened so it sits quietly with the glow */
 .wish-textarea:focus-visible {
-  outline: 2px solid var(--starlight);
-  outline-offset: 3px;
+  outline: 2px solid rgba(244, 230, 189, 0.6);
+  outline-offset: 5px;
 }
 
 .form-footer {
@@ -614,12 +675,13 @@ main {
 }
 
 .char-count.is-near {
-  color: var(--danger);
+  color: var(--warm);
 }
 
 .release-success {
   text-align: center;
   padding: 60px 0 20px;
+  animation: fade-up 0.7s ease both;
 }
 
 .release-success h2 {
@@ -663,6 +725,10 @@ main {
   border-top: 1px solid var(--line);
 }
 
+.prose + .link-row {
+  margin-top: 40px;
+}
+
 /* ---------- 404 ---------- */
 
 .not-found {
@@ -672,7 +738,7 @@ main {
 
 /* ---------- Responsive ---------- */
 
-@media (max-width: 900px) {
+@media (max-width: 999px) {
   .wish-grid { column-count: 2; }
 }
 

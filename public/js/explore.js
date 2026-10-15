@@ -19,17 +19,20 @@
     return el;
   }
 
-  // A small star, a short curved trail, and a few specks of star dust.
+  // A small softly-rounded star, a short delicate trail (plus a fainter one), and tiny star dust.
   function createStarIcon() {
-    const svg = svgEl('svg', { class: 'star-svg', viewBox: '0 0 30 22', 'aria-hidden': 'true', focusable: 'false' });
-    svg.appendChild(svgEl('path', { class: 'star-trail', d: 'M17 11 Q9 12 2 19' }));
-    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '11', cy: '16.5', r: '0.9' }));
-    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '6.5', cy: '13', r: '0.8' }));
-    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '14', cy: '19.5', r: '0.7' }));
+    const svg = svgEl('svg', { class: 'star-svg', viewBox: '0 0 34 24', 'aria-hidden': 'true', focusable: 'false' });
+    svg.appendChild(svgEl('path', { class: 'star-trail', d: 'M20 12.5 Q11 14 2.5 21' }));
+    svg.appendChild(svgEl('path', { class: 'star-trail star-trail-faint', d: 'M19.5 9 Q12 8.5 6 12' }));
+    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '12', cy: '18.5', r: '0.9' }));
+    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '7.5', cy: '15', r: '0.7' }));
+    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '15', cy: '21.5', r: '0.6' }));
+    svg.appendChild(svgEl('circle', { class: 'star-dust', cx: '4.5', cy: '19', r: '0.55' }));
     svg.appendChild(
       svgEl('path', {
         class: 'star-body',
-        d: 'M22 3 L23.53 6.9 L27.71 7.15 L24.47 9.8 L25.53 13.85 L22 11.6 L18.47 13.85 L19.53 9.8 L16.29 7.15 L20.47 6.9 Z'
+        transform: 'rotate(-12 26 10)',
+        d: 'M26 3 L27.82 7.49 L32.66 7.84 L28.95 10.96 L30.12 15.66 L26 13.1 L21.88 15.66 L23.05 10.96 L19.34 7.84 L24.18 7.49 Z'
       })
     );
     return svg;
@@ -78,8 +81,9 @@
     const meta = document.createElement('div');
     meta.className = 'wish-meta';
 
-    const time = document.createElement('span');
+    const time = document.createElement('time');
     time.className = 'wish-time';
+    time.setAttribute('datetime', wish.created_at);
     time.textContent = HW.formatDate(wish.created_at);
 
     const button = document.createElement('button');

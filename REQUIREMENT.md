@@ -179,7 +179,7 @@ A fresh project/database must receive seed wishes as part of a defined, automati
 
 Each wish stores its creation timestamp. API responses return ISO 8601 UTC (`YYYY-MM-DDTHH:MM:SS.sssZ`).
 
-The UI may show subtle relative time on Explore cards (e.g. "just now", "5m ago", "2h ago", "3d ago"). Exact wording is a UI decision.
+The UI shows subtle, human-friendly relative time on Explore cards, in a semantic `<time datetime="…">` element, never as a database-style date. Progression: "just now", "5m ago", "2h ago", "yesterday", "4 days ago", "3 weeks ago", "about a month ago", "2 months ago", "1 year ago" (singular/plural forms respected). Display only; stored timestamps are unchanged.
 
 ---
 

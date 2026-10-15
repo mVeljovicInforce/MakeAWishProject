@@ -26,6 +26,11 @@
     return data;
   }
 
+  function plural(n, unit) {
+    return `${n} ${unit}${n === 1 ? '' : 's'} ago`;
+  }
+
+  // Human-friendly relative time. Display only; stored timestamps are never touched.
   function formatDate(dateString) {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return '';
@@ -33,12 +38,15 @@
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'just now';
+    if (diffMins < 1) return 'just now'; // also covers small clock skew (future timestamps)
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    if (diffDays < 7) return plural(diffDays, 'day');
+    if (diffDays < 30) return plural(Math.floor(diffDays / 7), 'week');
+    if (diffDays < 45) return 'about a month ago';
+    if (diffDays < 365) return plural(Math.min(11, Math.max(2, Math.round(diffDays / 30.44))), 'month');
+    return plural(Math.floor(diffDays / 365), 'year');
   }
 
   // localStorage can throw (private mode, blocked storage); fall back to memory for this page view.
