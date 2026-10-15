@@ -1,5 +1,7 @@
 # Hidden Wishes — Implementation Summary
 
+> **HISTORICAL — SUPERSEDED.** This records the MVP fix pass completed on 2026-09-25 only. Counts and line numbers reflect that moment (e.g., "32 wishes"; the database now holds more, including development test rows), and the notes that `AGENTS.md` was removed from the README are outdated because `AGENTS.md` now exists and is documented. It does not describe the v2 redesign. For current requirements see `REQUIREMENT.md` and `DESIGN.md`.
+
 **Date Completed:** 2026-09-25  
 **Status:** ✅ All Phase 1-3 fixes implemented and tested
 

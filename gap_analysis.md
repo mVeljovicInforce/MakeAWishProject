@@ -1,5 +1,7 @@
 # Hidden Wishes — Gap Analysis Report
 
+> **HISTORICAL — SUPERSEDED.** This report reviewed the original single-page MVP on 2026-09-25 and several of its findings were fixed afterwards (API response wrappers, seed timestamps, button focus styles, README prerequisites; see `IMPLEMENTATION_SUMMARY.md`). Some statements below are stale (e.g., references to `app.js:31`/`database.js:45` and a missing `AGENTS.md`, which now exists). It does not describe the v2 redesign. For current requirements see `REQUIREMENT.md` and `DESIGN.md`.
+
 **Date:** 2026-09-25  
 **Reviewed Against:** REQUIREMENT.md  
 **Status:** Multiple issues identified — primarily API response format mismatches and minor accessibility/documentation issues

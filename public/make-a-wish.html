@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Leave an anonymous wish. No name, no account.">
+  <title>Leave a wish — Hidden Wishes</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="/">Hidden Wishes</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/wishes">Explore</a>
+      <a href="/make-a-wish" aria-current="page">Leave a Wish</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page-narrow">
+    <section id="formSection">
+      <h1 class="page-title">Leave something here.</h1>
+      <p class="page-lede">You don't need to explain it.</p>
+
+      <form class="wish-form" id="wishForm" novalidate>
+        <label class="sr-only" for="wishInput">Your wish</label>
+        <textarea
+          id="wishInput"
+          class="wish-textarea"
+          name="text"
+          placeholder="I wish..."
+          maxlength="500"
+          aria-describedby="charCount formMessage"
+        ></textarea>
+
+        <div class="form-footer">
+          <span class="char-count" id="charCount"><span id="charCountValue">0</span> / 500</span>
+          <button type="submit" class="btn" id="releaseBtn">Release my wish</button>
+        </div>
+
+        <p class="status" id="formMessage" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="release-success" id="successSection" tabindex="-1" hidden>
+      <h2>It's out there now.</h2>
+      <p>Somewhere, someone may read it.</p>
+      <div class="release-actions">
+        <a class="btn" href="/wishes">Read someone else's wish</a>
+        <button type="button" class="btn btn-quiet" id="leaveAnotherBtn">Leave another</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="/about">About</a>
+    </nav>
+    <p>We don't ask for your name, email, or profile.</p>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/make-a-wish.js"></script>
+</body>
+</html>

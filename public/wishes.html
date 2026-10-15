@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Anonymous wishes left by strangers. Read a few, and send a little light to the ones that touch you.">
+  <title>Explore wishes — Hidden Wishes</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="/">Hidden Wishes</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/wishes" aria-current="page">Explore</a>
+      <a href="/make-a-wish">Leave a Wish</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="explore-head">
+      <h1 class="page-title">Things people left here.</h1>
+      <p class="page-lede">Take your time. Send a little light if one touches you.</p>
+    </div>
+
+    <section id="wishGrid" class="wish-grid" aria-label="Wishes"></section>
+
+    <p class="status" id="exploreStatus" role="status" aria-live="polite"></p>
+
+    <div class="explore-actions">
+      <button type="button" class="btn" id="differentBtn">Show me different wishes</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="/about">About</a>
+    </nav>
+    <p>We don't ask for your name, email, or profile.</p>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/explore.js"></script>
+</body>
+</html>

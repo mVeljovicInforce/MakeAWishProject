@@ -1,32 +1,46 @@
 # Hidden Wishes
 
-A peaceful, anonymous web application where visitors can share private wishes, hopes, dreams, and thoughts without revealing their identity.
+A peaceful web application where visitors can share wishes, hopes, dreams, and thoughts without creating an account or giving their name.
+
+> **Status:** v2 (multi-page redesign) is implemented: landing with a featured wish, Explore, Make a Wish, About, custom 404, and the private shooting-star reaction. Behavior is specified in [REQUIREMENT.md](REQUIREMENT.md) and [DESIGN.md](DESIGN.md).
 
 ## Features
 
 - **Anonymous sharing**: No accounts, usernames, or profiles required
-- **Privacy-first**: No collection of personal data (no emails, IP addresses, or identification)
+- **Privacy-minded**: The app does not ask for or intentionally collect identity fields such as name, email, profile, or account information. The text of each submitted wish is stored, and a visitor may voluntarily include identifying information in what they write, so stored wish content must never be assumed to be free of it
 - **Random wish discovery**: View random wishes submitted by others
 - **Simple submission**: Submit wishes up to 500 characters
-- **Responsive design**: Works beautifully on desktop and mobile
+- **Responsive design**: Works on desktop and mobile
 - **Minimal interface**: Clean, atmospheric design with smooth animations
+- **Send a little light**: one private shooting-star reaction per wish; reaction counts are stored internally and never shown or returned by the API
 
 ## Project Structure
 
 ```
 hidden-wishes/
-├── package.json           # Project dependencies
+├── package.json
 ├── server.js             # Express server and API endpoints
 ├── database.js           # SQLite database module
-├── seed.js              # Database seeding script
-├── README.md            # This file
+├── seedData.js           # Seed wishes (incl. the featured wish)
+├── seed.js               # Manual, idempotent seed script
+├── REQUIREMENT.md        # Required behavior (source of truth)
+├── DESIGN.md             # Visual/interaction design
+├── README.md
+├── CLAUDE.md / AGENTS.md # Guidance for coding agents
 ├── public/
-│   ├── index.html       # Landing page
-│   ├── styles.css       # Styling
-│   └── app.js          # Frontend JavaScript
+│   ├── index.html        # Landing (/)
+│   ├── wishes.html       # Explore (/wishes)
+│   ├── make-a-wish.html  # (/make-a-wish)
+│   ├── about.html        # (/about)
+│   ├── 404.html
+│   ├── favicon.svg
+│   ├── styles.css
+│   └── js/               # common.js + one script per page
 └── data/
-    └── wishes.db        # SQLite database (created at runtime)
+    └── wishes.db         # SQLite database (created at runtime)
 ```
+
+Routes: `/` landing, `/wishes` explore (6 random wishes), `/make-a-wish`, `/about`; unknown routes show the custom 404 page.
 
 ## Technical Stack
 
@@ -63,10 +77,7 @@ npm --version
    npm install
    ```
 
-3. **Seed the database with sample wishes** (optional, but recommended):
-   ```bash
-   node seed.js
-   ```
+3. **Seeding is automatic.** On startup the server creates/migrates the schema and, if the `wishes` table is empty, inserts the sample wishes (including the featured wish). `node seed.js` runs the same idempotent logic manually; it never inserts when wishes already exist.
 
 ## Running the Application
 
@@ -78,11 +89,11 @@ npm start
 
 The application will be available at **http://localhost:3000**
 
-You should see output like:
+You should see output like (the wish count depends on your database):
 
 ```
 ✨ Hidden Wishes app running at http://localhost:3000
-📚 Database contains 20 wishes
+📚 Database contains <N> wishes
 ```
 
 ## API Endpoints
@@ -141,6 +152,12 @@ Submit a new wish.
 }
 ```
 
+### Additional endpoints
+
+- `GET /api/wishes/featured` → `{ "wish": { id, text, created_at } }` or `{ "wish": null }`
+- `GET /api/wishes/random?count=N&exclude=ID` — optional `exclude` omits one wish
+- `POST /api/wishes/:id/react` with body `{ "visitorKey": "<random anonymous browser id>" }` → `{ "success": true }`. Returns 404 for an unknown wish; a duplicate reaction from the same browser is accepted without adding a second one. No endpoint ever returns reaction counts.
+
 ### GET /api/health
 
 Health check endpoint.
@@ -164,18 +181,26 @@ Health check endpoint.
 | text       | TEXT                  | The original trimmed wish text  |
 | created_at | DATETIME              | Timestamp when wish was created |
 
+Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most one featured wish, enforced in application code) and a new `wish_reactions(id, wish_id, visitor_key_hash, created_at, UNIQUE(wish_id, visitor_key_hash))` table. Only a hash of the anonymous browser identifier is stored.
+
+### Migration approach and git tracking
+
+- On every startup the schema is migrated non-destructively: `CREATE TABLE IF NOT EXISTS wish_reactions …`; `wishes.is_featured` is added only if `PRAGMA table_info(wishes)` shows it missing; a partial unique index allows at most one featured wish. Existing rows are never deleted or rewritten. The exact featured wish text is flagged if present, otherwise inserted.
+- Back up `data/wishes.db` before upgrading an existing install (this repo's database was backed up to `data/backups/` before the v2 migration; that folder is git-ignored).
+- `data/wishes.db` is still tracked by git and contains development test rows (XSS inputs, "AAAA…", etc.) to clean before any public deployment. Recommended: stop tracking it (`data/*.db` in `.gitignore`), since fresh clones now seed themselves. Not yet done; requires approval.
+
 ## Security Features
 
 - **Input validation**: All input is validated on the backend
 - **Safe rendering**: Wish content is rendered with `textContent`, so markup is displayed as plain text
 - **Parameterized queries**: SQL is protected against injection attacks
-- **No personal data**: Application does not collect or store any identifying information
+- **No identity fields**: The application does not ask for or intentionally collect names, emails, profiles, or account information. Wish text itself is stored as written and may contain identifying information if the visitor chooses to include it
 
 ## Design Philosophy
 
 - **Minimal**: No unnecessary features or distractions
 - **Peaceful**: Soft colors, plenty of whitespace, smooth animations
-- **Anonymous**: Complete privacy for wish submission
+- **Anonymous by design**: No identity is requested for wish submission (this does not stop a visitor from typing identifying details into their wish)
 - **Responsive**: Works seamlessly on any device
 - **Accessible**: Clear typography, good contrast, semantic HTML
 
@@ -227,5 +252,3 @@ MIT
 ## Author
 
 Created as a peaceful platform for anonymous wishes.
-
-# MakeAWishProject

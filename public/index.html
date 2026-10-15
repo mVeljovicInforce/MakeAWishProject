@@ -3,57 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hidden Wishes — a quiet place to leave an anonymous wish and read someone else's.">
   <title>Hidden Wishes</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header class="header">
-      <h1 class="title">Hidden Wishes</h1>
-      <p class="subtitle">Some wishes are easier to share when nobody knows they're yours.</p>
-    </header>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Main content -->
-    <main class="main">
-      <!-- Wishes display -->
-      <section class="wishes-section">
-        <div class="wishes-container" id="wishesContainer">
-          <!-- Wishes will be loaded here -->
+  <header class="site-header">
+    <a class="brand" href="/" aria-current="page">Hidden Wishes</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/wishes">Explore</a>
+      <a href="/make-a-wish">Leave a Wish</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <h1 class="hero-title">Hidden Wishes</h1>
+
+      <p class="hero-question">What do you wish for when nobody is listening?</p>
+
+      <figure class="featured" id="featured" aria-live="polite" aria-atomic="true">
+        <blockquote>
+          <p class="wish-text" id="featuredText"></p>
+        </blockquote>
+      </figure>
+
+      <div class="hero-actions">
+        <button type="button" class="btn" id="anotherBtn">Read another wish</button>
+        <div class="link-row">
+          <a href="/wishes">Explore wishes</a>
+          <a href="/make-a-wish">Leave a wish</a>
         </div>
-        <button class="btn btn-refresh" id="refreshBtn">Show me more wishes</button>
-      </section>
+      </div>
 
-      <!-- Submit wish section -->
-      <section class="submit-section">
-        <h2 class="section-title">Share a wish</h2>
-        <form class="wish-form" id="wishForm">
-          <div class="form-group">
-            <label class="sr-only" for="wishInput">Your wish</label>
-            <textarea
-              id="wishInput"
-              class="wish-textarea"
-              placeholder="What's on your mind? A hope, dream, or thought..."
-              maxlength="500"
-              aria-describedby="charCountStatus"
-              required
-            ></textarea>
-            <div class="char-count" id="charCountStatus" aria-live="polite">
-              <span id="charCount">0</span>/500
-            </div>
-          </div>
-          <button type="submit" class="btn btn-submit">Release your wish</button>
-          <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
-        </form>
-      </section>
-    </main>
+      <p class="status" id="heroStatus" role="status"></p>
+    </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <p>Anonymous wishes, real hearts.</p>
-    </footer>
-  </div>
+    <section class="quiet-section" aria-labelledby="leaveHeading">
+      <p class="prose">
+        No profiles.<br>
+        No likes to chase.<br>
+        No followers.<br>
+        Just something you wanted to say.
+      </p>
+      <h2 id="leaveHeading">Leave something here.</h2>
+      <a class="btn" href="/make-a-wish">Leave a wish</a>
+    </section>
+  </main>
 
-  <script src="app.js"></script>
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="/about">About</a>
+    </nav>
+    <p>We don't ask for your name, email, or profile.</p>
+  </footer>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/landing.js"></script>
 </body>
 </html>

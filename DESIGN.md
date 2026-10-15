@@ -124,7 +124,7 @@ The exact line breaks may change depending on screen size.
 
 ### 5.3 First Featured Wish
 
-The first wish shown to a new visitor should initially be manually selected.
+The first wish shown to a new visitor is manually selected and stored as the single wish flagged `is_featured` in the database (see `REQUIREMENT.md` FR-012). There is no admin UI yet.
 
 It should be:
 
@@ -157,6 +157,8 @@ The featured wish may change through one of two interactions:
 A visitor clicks:
 
 **Read another wish**
+
+After the initial featured wish, this loads a random wish from the normal wish collection, excluding the currently displayed wish where practical. There is no separate curated pool.
 
 #### Optional slow rotation
 A new wish may appear automatically after approximately 8–10 seconds.
@@ -272,7 +274,7 @@ Suggested label:
 
 **Show me different wishes**
 
-The existing random-wish API may continue to power this behavior.
+The page initially shows 6 random wishes, and the control loads another set of 6. The existing random-wish API powers this behavior (`count=6`).
 
 An infinite feed is not required.
 
@@ -359,7 +361,7 @@ No bouncing animation.
 - A reaction should not change the ordering of wishes immediately in a way that exposes popularity.
 - A visitor should not be encouraged to react to every wish.
 
-For the early implementation, local browser storage may be used to remember which wishes the current browser has reacted to.
+For this version, the browser generates a random anonymous identifier stored in `localStorage` and sends it with the reaction; the backend stores only a hash of it, in a separate `wish_reactions` table, solely to prevent duplicate reactions to the same wish. The browser may also remember reacted wish IDs for UI state. See `REQUIREMENT.md` FR-010.
 
 A more robust server-side strategy may be introduced before a larger public launch.
 
@@ -539,6 +541,8 @@ A restrained pale glow.
 
 The final implementation may tune exact values visually.
 
+Hidden Wishes v2 is **dark by default**. The visual identity does not switch between light and dark based on the operating system preference.
+
 ---
 
 ## 11. Typography
@@ -574,6 +578,8 @@ This distinction should subtly communicate:
 **UI = application**
 
 Avoid excessive font weights and sizes.
+
+For now, use only system fonts: a good system serif stack for wish text and a system sans-serif stack for interface text. Do not add Google Fonts or other external font dependencies.
 
 ---
 
@@ -667,6 +673,12 @@ Do not pack the screen simply because space is limited.
 
 ---
 
+## 14a. Unknown Routes
+
+Unknown website routes show a simple custom 404 page in the same quiet visual style, with calm copy and a link back home.
+
+---
+
 ## 15. Empty States
 
 If no wishes exist:
@@ -729,11 +741,11 @@ The site should never imply that one person's wish matters more because more peo
 
 ### Phase 1
 
-Use a manually selected featured wish on the landing page.
+Use a manually selected featured wish on the landing page, stored via an `is_featured` flag (one active featured wish, enforced by application logic).
 
 This allows the product to establish its tone before enough organic reaction data exists.
 
-### Phase 2
+### Phase 2 (deferred — not part of v2)
 
 Once meaningful usage exists, reaction data may help identify wishes that resonated strongly with visitors.
 
@@ -758,7 +770,7 @@ The visitor should simply encounter the wish.
 
 ## 19. Relationship to REQUIREMENT.md
 
-`REQUIREMENT.md` remains the source of truth for required system behavior.
+`REQUIREMENT.md` is the source of truth for required system behavior. The shooting-star reaction, featured wish, routes, and 404 page are now defined there (FR-010 – FR-012, FR-011).
 
 This document defines:
 
