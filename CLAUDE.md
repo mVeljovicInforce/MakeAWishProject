@@ -47,11 +47,14 @@ To use a different port:
 ## Environment
 - No `.env` file or environment variables required.
 - Optional `PORT` env var (defaults to `3000`).
+- Optional `DB_PATH` env var: SQLite file to use (defaults to `data/wishes.db`, the local development database). Blank is an error.
 
 ## Database
-SQLite file at `data/wishes.db`, auto-created on server startup if missing. The committed file contains seed wishes plus development test rows. Do not delete, clean, or untrack it without explicit approval. Schema changes must be additive (see `REQUIREMENT.md` §6); back up first (`data/backups/` is git-ignored).
+SQLite file at `data/wishes.db`, auto-created on server startup if missing. It is the local development database and is not tracked by git (`data/*.db` is git-ignored); it may contain development test rows. Do not delete, clean, move, or overwrite it without explicit approval. Git history still contains older copies and has not been rewritten. Schema changes must be additive (see `REQUIREMENT.md` §6); back up first (`data/backups/` is git-ignored).
 
 ## Testing
-No automated tests in the repo. Start the server, then:
+`npm test` runs the automated regression suite (Node built-in test runner, Node 18+, no dependencies). Every test spawns the real server against its own temporary database (`<os temp>/hw-test-*`); the helpers in `test-utils/` refuse any other path, and the runner verifies `data/wishes.db` is byte-for-byte unchanged afterwards. Never point a test at `data/wishes.db`; any test that corrupts a database must do so only on its own temp database. Run `node test/<file>.test.js` to see individual test results.
+
+Manual checks: start the server, then:
 - Open `http://localhost:3000` in a browser for the UI
 - Test API endpoints with curl or an HTTP client

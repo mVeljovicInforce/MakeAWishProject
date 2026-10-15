@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node test-utils/run-tests.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "wishes",

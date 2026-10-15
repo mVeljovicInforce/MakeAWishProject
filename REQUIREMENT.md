@@ -392,9 +392,9 @@ Reaction totals are never stored on `wishes` and never exposed publicly.
 
 ### Location and migration
 
-- Database file: `data/wishes.db`, auto-created on startup if missing.
+- Database file: `data/wishes.db` by default (the local development database), auto-created on startup if missing. The `DB_PATH` environment variable overrides the location (production, tests, experiments); a blank `DB_PATH` is an error, never a silent fallback to the default. Automated tests only ever use temporary databases.
 - Schema changes must be **additive and non-destructive**: `CREATE TABLE IF NOT EXISTS wish_reactions`, and add `wishes.is_featured` only if absent (check `PRAGMA table_info(wishes)`, then `ALTER TABLE … ADD COLUMN`). Back up `data/wishes.db` before the first migration. No existing rows are deleted or modified by migration.
-- Recommended: stop tracking `data/wishes.db` in git (add `data/*.db` to `.gitignore`). It contains user-submitted and development-test data, and fresh clones are covered by automatic seeding (FR-008). **This must not be done until separately approved.**
+- `data/wishes.db` is a local development database and is not committed to git (`data/*.db` is git-ignored). It may contain user-submitted and development-test data; fresh clones are covered by automatic seeding (FR-008). The database existed in earlier Git history, which has not been rewritten; reviewing that history is a pre-publication task (see ROADMAP.md).
 
 ---
 
@@ -500,6 +500,7 @@ v2 is complete when all of the following are true:
 19. The site is dark by default, uses only system fonts, and works on desktop and mobile with no horizontal scroll.
 20. Existing `GET /api/wishes/random` and `POST /api/wishes` contracts still work.
 21. README, CLAUDE.md, and AGENTS.md match the implementation.
+22. `npm test` runs the automated regression suite against temporary databases only, passes, and leaves the development database untouched.
 
 ---
 

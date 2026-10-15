@@ -14,10 +14,12 @@ Hidden Wishes is a small CommonJS Node.js application with an Express backend, S
 - Start the server: `npm start`
 - Run the equivalent development command: `npm run dev`
 - Seed an empty database: `node seed.js`
+- Run the automated tests: `npm test` (Node 18+, built-in runner, no dependencies)
+- Use another database file: `DB_PATH=<file>` (default `data/wishes.db`, the local development database)
 - Default URL: `http://localhost:3000`
 - PowerShell alternate port: `$env:PORT=4000; npm start`
 
-There is currently no automated test, lint, or formatting command. Validate changes manually through the browser and the documented API endpoints.
+There is no lint or formatting command. Run `npm test` after changes (`node test/<file>.test.js` shows individual results) and verify UI changes in a browser.
 
 ## Architecture
 
@@ -26,7 +28,8 @@ There is currently no automated test, lint, or formatting command. Validate chan
 - [seedData.js](seedData.js) holds the seed wishes and the featured wish text; [seed.js](seed.js) is the idempotent manual seed script.
 - `public/*.html` are the four pages plus `404.html`; `public/js/common.js` has shared helpers and each page has its own script (`landing.js`, `explore.js`, `make-a-wish.js`).
 - [public/styles.css](public/styles.css) owns the dark theme tokens, layout, the shooting-star styles, and reduced-motion rules.
-- Runtime data is stored in `data/wishes.db`.
+- Runtime data is stored in `data/wishes.db` by default (override with `DB_PATH`).
+- `test/` holds the regression tests; `test-utils/` holds the isolation helpers and the `npm test` runner. Tests start the real server as a child process on a temporary database; helpers refuse any path outside `<os temp>/hw-test-*`. Keep helpers outside `test/` (Node 18 runs every file in that folder as a test).
 
 ## Conventions
 
@@ -51,7 +54,7 @@ Also: `GET /api/wishes/featured`; optional `exclude` on `GET /api/wishes/random`
 - Never expose reaction totals or reaction-derived data in any API response or UI. No likes, comments, rankings, trending, profiles, followers, engagement scores, or infinite scroll.
 - The reaction is never called a "Like"; its copy is "Send a little light".
 - Store only a hash of the anonymous visitor key (`wish_reactions.visitor_key_hash`), never the raw key, IP address, or user agent.
-- Database schema changes must be additive and non-destructive. Do not delete, clean, or untrack `data/wishes.db` without explicit approval.
+- Database schema changes must be additive and non-destructive. Do not delete, clean, move, or overwrite `data/wishes.db` (the git-ignored local development database) without explicit approval, and never rewrite Git history without an explicit request.
 - Dark by default; system fonts only (no external font dependencies).
 
 ## Known Limitations

@@ -23,6 +23,9 @@ hidden-wishes/
 ├── database.js           # SQLite database module
 ├── seedData.js           # Seed wishes (incl. the featured wish)
 ├── seed.js               # Manual, idempotent seed script
+├── test/                 # Automated regression tests (node:test)
+├── test-utils/           # Test isolation helpers and the `npm test` runner
+├── ROADMAP.md            # Product and engineering roadmap
 ├── REQUIREMENT.md        # Required behavior (source of truth)
 ├── DESIGN.md             # Visual/interaction design
 ├── README.md
@@ -53,8 +56,8 @@ Routes: `/` landing, `/wishes` explore (6 random wishes), `/make-a-wish`, `/abou
 
 Before you can run Hidden Wishes, ensure you have the following installed:
 
-- **Node.js**: 14.0.0 or higher
-- **npm**: 6.0.0 or higher
+- **Node.js**: 18.0.0 or higher (the test suite uses Node's built-in test runner and `fetch`)
+- **npm**: 8.0.0 or higher (bundled with Node 18)
 
 You can check your versions by running:
 
@@ -187,7 +190,8 @@ Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most on
 
 - On every startup the schema is migrated non-destructively: `CREATE TABLE IF NOT EXISTS wish_reactions …`; `wishes.is_featured` is added only if `PRAGMA table_info(wishes)` shows it missing; a partial unique index allows at most one featured wish. Existing rows are never deleted or rewritten. The exact featured wish text is flagged if present, otherwise inserted.
 - Back up `data/wishes.db` before upgrading an existing install (this repo's database was backed up to `data/backups/` before the v2 migration; that folder is git-ignored).
-- `data/wishes.db` is still tracked by git and contains development test rows (XSS inputs, "AAAA…", etc.) to clean before any public deployment. Recommended: stop tracking it (`data/*.db` in `.gitignore`), since fresh clones now seed themselves. Not yet done; requires approval.
+- `data/wishes.db` is the local development database and is **not tracked by git** (`data/*.db` is in `.gitignore`); fresh clones create and seed their own. Your local file may contain development test rows (XSS inputs, "AAAA…", etc.) to clean before any public deployment. The database existed in earlier Git history, which has not been rewritten (see ROADMAP.md, "Repository history review").
+- If you are updating a checkout that still tracked `data/wishes.db`, back the file up before pulling the commit that untracks it: Git removes a file that a pulled commit deletes from the repository. Switching to an older commit or branch that still tracks the file can likewise overwrite your local copy.
 
 ## Security Features
 
@@ -203,6 +207,33 @@ Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most on
 - **Anonymous by design**: No identity is requested for wish submission (this does not stop a visitor from typing identifying details into their wish)
 - **Responsive**: Works seamlessly on any device
 - **Accessible**: Clear typography, good contrast, semantic HTML
+
+## Configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `3000` | HTTP port |
+| `DB_PATH` | `data/wishes.db` | SQLite database file. The default is the local development database. Set it to use another file (production, experiments). The parent folder is created if needed. A blank value is an error, never a silent fallback. |
+
+```bash
+DB_PATH=/var/lib/hidden-wishes/wishes.db PORT=8080 npm start
+```
+
+PowerShell: `$env:DB_PATH="D:\data\wishes.db"; npm start`
+
+A fresh clone needs no database file: `npm install && npm start` creates `data/wishes.db` and seeds it from `seedData.js`.
+
+## Testing
+
+```bash
+npm test
+```
+
+The suite uses only Node's built-in test runner (Node 18+); there are no test dependencies. It covers the wish, featured-wish and reaction APIs, validation limits, XSS/SQL-injection handling, page routing and 404s, safe error responses, "no reaction counts anywhere", startup seeding, additive migration, persistence across restarts, and the browser-free frontend helpers.
+
+- **Isolation:** every test starts the real server (`node server.js`) as a child process against its own temporary database (`<os temp>/hw-test-*/test.db`) and deletes it afterwards. The helpers refuse to run against any other path, so tests cannot touch `data/wishes.db`. `npm test` also checks that the development database's SHA-256, size and modified time are identical before and after the run.
+- **Details of one file:** `node test/wishes.test.js` prints every individual test (`npm test` reports one result per file).
+- Browser-level (end-to-end) tests are not part of `npm test` yet; see ROADMAP.md.
 
 ## Customization
 
@@ -220,7 +251,7 @@ Edit `public/styles.css` to customize colors, fonts, and animations.
 
 ### Add more sample wishes
 
-Edit the `sampleWishes` array in `seed.js` and run `node seed.js` again.
+Edit the `sampleWishes` array in `seedData.js`. Seeding only happens when the database has no wishes, so use a new database (for example `DB_PATH=data/experiment.db npm start`) to see changes.
 
 ## Limitations & Future Improvements
 

@@ -4,12 +4,17 @@ const fs = require('fs');
 const path = require('path');
 const { FEATURED_WISH, sampleWishes } = require('./seedData');
 
-const dataDir = path.join(__dirname, 'data');
-const dbPath = path.join(__dirname, 'data', 'wishes.db');
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// Database location: DB_PATH if set, otherwise the local development database data/wishes.db.
+// A DB_PATH that is set but blank is an error, never a silent fallback to the default database.
+function resolveDbPath() {
+  const configured = process.env.DB_PATH;
+  if (configured === undefined) return path.join(__dirname, 'data', 'wishes.db');
+  if (configured.trim() === '') throw new Error('DB_PATH is set but empty');
+  return path.resolve(configured);
 }
+
+const dbPath = resolveDbPath();
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
@@ -85,20 +90,15 @@ async function ensureSchema() {
   );
 }
 
+// Uses db.run (errors reach the callback) rather than db.prepare: a failing prepare() emits an
+// unhandled 'error' event that would crash the whole server instead of producing a 500.
 function addWish(text, createdAt = null) {
-  return new Promise((resolve, reject) => {
-    const isoTimestamp = createdAt || new Date().toISOString();
-    const stmt = createdAt
-      ? db.prepare('INSERT INTO wishes (text, created_at) VALUES (?, ?)')
-      : db.prepare('INSERT INTO wishes (text) VALUES (?)');
-
-    const params = createdAt ? [text, createdAt] : [text];
-    stmt.run(...params, function (err) {
-      if (err) reject(err);
-      else resolve({ id: this.lastID, text, created_at: isoTimestamp });
-    });
-    stmt.finalize();
-  });
+  const isoTimestamp = createdAt || new Date().toISOString();
+  const sql = createdAt
+    ? 'INSERT INTO wishes (text, created_at) VALUES (?, ?)'
+    : 'INSERT INTO wishes (text) VALUES (?)';
+  const params = createdAt ? [text, createdAt] : [text];
+  return run(sql, params).then(({ lastID }) => ({ id: lastID, text, created_at: isoTimestamp }));
 }
 
 function getRandomWishes(count = 3, excludeId = null) {
@@ -189,6 +189,7 @@ function addReaction(wishId, visitorKey) {
 
 module.exports = {
   db,
+  dbPath,
   initializeDatabase,
   seedIfEmpty,
   addWish,
