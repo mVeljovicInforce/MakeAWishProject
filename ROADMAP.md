@@ -16,6 +16,8 @@ Guiding principle (unchanged): *a quiet place where a stranger can leave a wish,
 - Private shooting-star reaction ("Send a little light"): one per wish per browser, hashed anonymous visitor key, counts stored internally and never exposed.
 - Dark nocturnal visual identity, system fonts only, reduced-motion support, keyboard accessible, responsive down to 320px.
 - Node.js + Express + SQLite, vanilla HTML/CSS/JS, additive and non-destructive migrations, automatic seeding of an empty database.
+- Configurable database path (`DB_PATH`); the default `data/wishes.db` is a git-ignored local development database.
+- Automated regression suite: 162 test cases across 8 test files (570 assertions), all passing, run against isolated temporary databases.
 
 Intentionally deferred from v2: automatic landing-page wish rotation, and reaction-based featured-wish selection (internal only, never shown publicly).
 
@@ -29,7 +31,8 @@ Goal: make the codebase safe to change and ready to be run by someone other than
 - **Development vs production database separation.** *Done:* `DB_PATH` selects the database file (default `data/wishes.db` is the local development database); tests use only temporary databases and `npm test` verifies the development database is untouched. *Still open:* choosing and documenting the production path as part of deployment.
 - **Clean development data.** *Partly done:* `data/wishes.db` is no longer tracked by git (it is git-ignored, and fresh clones seed themselves). *Still open:* remove the test rows (XSS inputs, repeated characters, "hey", etc.) from the local development database before any public deployment. This needs an explicit decision.
 - **Production configuration and environment handling.** Explicit environment variables (port, database path, salt for reaction hashing, environment name), sensible defaults, documented in the README.
-- **Small known gaps.** Reaction anti-abuse beyond browser storage; review the weeks/months wording and any remaining UI copy before launch.
+- **Small known gaps.** Reaction anti-abuse beyond browser storage (deduplication can be bypassed by clearing local storage or sending another identifier); a server-side salt for the reaction visitor-key hash (currently plain SHA-256); review the weeks/months wording and any remaining UI copy before launch.
+- **Deferred product features.** Automatic landing-page wish rotation and reaction-based featured-wish selection (internal only, never displayed publicly) remain deferred; there is no admin UI.
 
 ---
 
@@ -41,8 +44,8 @@ Goal: a small, real audience can use Hidden Wishes safely.
 - **Rate limiting and spam protection.** Limits on wish submission and reactions; basic bot protection. Must respect the anonymity principle (no IP addresses stored in the application database unless explicitly decided otherwise).
 - **Repository history review.** The SQLite database (`data/wishes.db`) has existed in Git history, including development and test wishes (for example XSS test strings and personal-sounding sample text). Git history has intentionally **not** been rewritten. Before the repository is ever made public or broadly shared, review whether the historical database commits contain personal or test content. If cleanup is needed, it will be a separate, explicit operation (never done automatically), with a backup first.
 - **Database backup strategy.** Scheduled, tested backups and a documented restore procedure.
-- **Deployment.** Hosting choice, process management, HTTPS, logging and error monitoring that does not capture visitor identity.
-- **Domain setup.** Domain, DNS, and TLS.
+- **Deployment.** Hosting choice, process management, HTTPS, logging and error monitoring that does not capture visitor identity. No production hosting is configured yet.
+- **Domain setup.** Domain, DNS, and TLS. No domain is configured yet.
 - **Public beta testing.** Invite a limited group, collect feedback on tone, moderation load, and performance, and fix issues before a wider launch.
 
 ---

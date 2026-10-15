@@ -161,7 +161,9 @@ A visitor clicks:
 After the initial featured wish, this loads a random wish from the normal wish collection, excluding the currently displayed wish where practical. There is no separate curated pool.
 
 #### Optional slow rotation
-A new wish may appear automatically after approximately 8–10 seconds.
+**Status: deferred. Not implemented in v2; the landing wish changes only when the visitor selects "Read another wish".**
+
+If it is added later, a new wish may appear automatically after approximately 8–10 seconds.
 
 If automatic rotation is implemented:
 

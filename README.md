@@ -2,7 +2,7 @@
 
 A peaceful web application where visitors can share wishes, hopes, dreams, and thoughts without creating an account or giving their name.
 
-> **Status:** v2 (multi-page redesign) is implemented: landing with a featured wish, Explore, Make a Wish, About, custom 404, and the private shooting-star reaction. Behavior is specified in [REQUIREMENT.md](REQUIREMENT.md) and [DESIGN.md](DESIGN.md).
+> **Status:** v2 (multi-page redesign) is implemented and visually polished: landing with a featured wish, Explore, Make a Wish, About, custom 404, and the private shooting-star reaction. Behavior is specified in [REQUIREMENT.md](REQUIREMENT.md) and [DESIGN.md](DESIGN.md); a concise current-state summary for new contributors and AI agents is in [PROJECT_STATE.md](PROJECT_STATE.md); plans are in [ROADMAP.md](ROADMAP.md). This is a development milestone: no production hosting, moderation, or rate limiting exists yet.
 
 ## Features
 
@@ -13,6 +13,7 @@ A peaceful web application where visitors can share wishes, hopes, dreams, and t
 - **Responsive design**: Works on desktop and mobile
 - **Minimal interface**: Clean, atmospheric design with smooth animations
 - **Send a little light**: one private shooting-star reaction per wish; reaction counts are stored internally and never shown or returned by the API
+- **Automated regression tests**: `npm test` (no extra dependencies) runs against isolated temporary databases
 
 ## Project Structure
 
@@ -25,7 +26,9 @@ hidden-wishes/
 ├── seed.js               # Manual, idempotent seed script
 ├── test/                 # Automated regression tests (node:test)
 ├── test-utils/           # Test isolation helpers and the `npm test` runner
+├── PROJECT_STATE.md      # Start here: concise current-state summary
 ├── ROADMAP.md            # Product and engineering roadmap
+├── .gitignore            # Ignores database files and backups
 ├── REQUIREMENT.md        # Required behavior (source of truth)
 ├── DESIGN.md             # Visual/interaction design
 ├── README.md
@@ -40,7 +43,8 @@ hidden-wishes/
 │   ├── styles.css
 │   └── js/               # common.js + one script per page
 └── data/
-    └── wishes.db         # SQLite database (created at runtime)
+    ├── wishes.db         # Local development database (git-ignored, created at runtime)
+    └── backups/          # Local backups (git-ignored)
 ```
 
 Routes: `/` landing, `/wishes` explore (6 random wishes), `/make-a-wish`, `/about`; unknown routes show the custom 404 page.
@@ -107,7 +111,8 @@ Fetch random wishes from the database.
 
 **Query Parameters:**
 
-- `count` (optional): Number of wishes to return (1-10, default: 3)
+- `count` (optional): Number of wishes to return. Default 3 when omitted or non-numeric; values below 1 become 1 and values above 10 become 10.
+- `exclude` (optional): A wish id to leave out of the result (invalid values are ignored).
 
 **Response:**
 
@@ -184,11 +189,11 @@ Health check endpoint.
 | text       | TEXT                  | The original trimmed wish text  |
 | created_at | DATETIME              | Timestamp when wish was created |
 
-Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most one featured wish, enforced in application code) and a new `wish_reactions(id, wish_id, visitor_key_hash, created_at, UNIQUE(wish_id, visitor_key_hash))` table. Only a hash of the anonymous browser identifier is stored.
+Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most one featured wish, enforced by application logic and a partial unique index) and a new `wish_reactions(id, wish_id, visitor_key_hash, created_at, UNIQUE(wish_id, visitor_key_hash))` table. Only a hash of the anonymous browser identifier is stored.
 
 ### Migration approach and git tracking
 
-- On every startup the schema is migrated non-destructively: `CREATE TABLE IF NOT EXISTS wish_reactions …`; `wishes.is_featured` is added only if `PRAGMA table_info(wishes)` shows it missing; a partial unique index allows at most one featured wish. Existing rows are never deleted or rewritten. The exact featured wish text is flagged if present, otherwise inserted.
+- On every startup the schema is migrated non-destructively: `CREATE TABLE IF NOT EXISTS wish_reactions …`; `wishes.is_featured` is added only if `PRAGMA table_info(wishes)` shows it missing; a partial unique index allows at most one featured wish. Existing rows are never deleted or rewritten. If a wish is already featured it is left alone on every startup; only when none is featured is the initial featured wish text flagged (or inserted first if missing).
 - Back up `data/wishes.db` before upgrading an existing install (this repo's database was backed up to `data/backups/` before the v2 migration; that folder is git-ignored).
 - `data/wishes.db` is the local development database and is **not tracked by git** (`data/*.db` is in `.gitignore`); fresh clones create and seed their own. Your local file may contain development test rows (XSS inputs, "AAAA…", etc.) to clean before any public deployment. The database existed in earlier Git history, which has not been rewritten (see ROADMAP.md, "Repository history review").
 - If you are updating a checkout that still tracked `data/wishes.db`, back the file up before pulling the commit that untracks it: Git removes a file that a pulled commit deletes from the repository. Switching to an older commit or branch that still tracks the file can likewise overwrite your local copy.
@@ -198,6 +203,7 @@ Additive v2 changes: `wishes.is_featured INTEGER NOT NULL DEFAULT 0` (at most on
 - **Input validation**: All input is validated on the backend
 - **Safe rendering**: Wish content is rendered with `textContent`, so markup is displayed as plain text
 - **Parameterized queries**: SQL is protected against injection attacks
+- **Safe errors**: Failures return generic messages and HTTP status codes, never stack traces, file paths, or database details
 - **No identity fields**: The application does not ask for or intentionally collect names, emails, profiles, or account information. Wish text itself is stored as written and may contain identifying information if the visitor chooses to include it
 
 ## Design Philosophy
@@ -229,10 +235,13 @@ A fresh clone needs no database file: `npm install && npm start` creates `data/w
 npm test
 ```
 
-The suite uses only Node's built-in test runner (Node 18+); there are no test dependencies. It covers the wish, featured-wish and reaction APIs, validation limits, XSS/SQL-injection handling, page routing and 404s, safe error responses, "no reaction counts anywhere", startup seeding, additive migration, persistence across restarts, and the browser-free frontend helpers.
+The suite uses only Node's built-in test runner (Node 18+); there are no test dependencies. At the time of writing it has **162 automated test cases across 8 test files, with 570 assertions, all passing.** On Node 18, `npm test` prints `# tests 8` because it reports each of the 8 test files as one subprocess result; that is not the number of test cases.
+
+It covers wish creation and validation (including the 500/501-character boundary), `count` default/min/max and `exclude` behavior, XSS and SQL-injection handling, the featured wish (including that an existing featured wish survives restarts), reaction hashing, deduplication and "no reaction counts anywhere", page routes, API routes and 404s, safe error responses, startup seeding, additive migration of an older database, persistence across restarts, isolation of the test databases, and the browser-free frontend helpers. The tests are HTTP/database/unit-style; they do not drive a real browser.
 
 - **Isolation:** every test starts the real server (`node server.js`) as a child process against its own temporary database (`<os temp>/hw-test-*/test.db`) and deletes it afterwards. The helpers refuse to run against any other path, so tests cannot touch `data/wishes.db`. `npm test` also checks that the development database's SHA-256, size and modified time are identical before and after the run.
-- **Details of one file:** `node test/wishes.test.js` prints every individual test (`npm test` reports one result per file).
+- **Details of one file:** `node test/wishes.test.js` prints every individual test case (`npm test` reports one result per file).
+- **Do not use the dev server during a run:** if `data/wishes.db` changes while `npm test` runs (for example you submit a wish in a running dev server), the runner reports a failure even though the tests only used temporary databases.
 - Browser-level (end-to-end) tests are not part of `npm test` yet; see ROADMAP.md.
 
 ## Customization
@@ -257,11 +266,17 @@ Edit the `sampleWishes` array in `seedData.js`. Seeding only happens when the da
 
 ### Current Limitations
 
-- No moderation system (wishes are published immediately)
-- No way to edit or delete wishes after submission
+- No moderation or reporting system (wishes are published immediately)
+- No rate limiting or spam protection
+- No admin UI, and no way to edit or delete wishes after submission
+- Reaction deduplication is per anonymous browser: clearing local storage, or deliberately sending another identifier, creates another reaction (counts are internal only)
+- The reaction visitor-key hash is plain SHA-256 (no server-side salt yet)
+- Reaction-based featured-wish selection and automatic landing-page wish rotation are deferred
+- Browser-level end-to-end tests are a future optional layer
+- Your local development database may contain test/junk wishes; it is not part of the repository
+- Earlier Git commits still contain a previously tracked copy of the database; history has not been rewritten and must be reviewed before the repository is ever made public or broadly shared (see ROADMAP.md)
+- No production hosting, domain, or backup strategy is configured yet
 - Database stored locally (not suitable for multi-server deployments)
-- No rate limiting (vulnerable to spam/abuse in production)
-- Limited wish lifespan management
 
 ### Recommendations for Production
 
@@ -274,7 +289,7 @@ Edit the `sampleWishes` array in `seedData.js`. Seeding only happens when the da
 7. **Add HTTPS**: Require SSL/TLS in production
 8. **Add data cleanup**: Implement automatic deletion of very old wishes
 9. **Add captcha**: Use reCAPTCHA to prevent bot spam
-10. **Add testing**: Create unit and integration tests
+10. **Add browser-level tests and CI**: HTTP/database/unit-style tests already exist (`npm test`); add end-to-end browser tests and a CI pipeline
 
 ## License
 

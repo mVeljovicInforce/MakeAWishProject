@@ -78,7 +78,7 @@ The page must work without authentication.
 
 Below the hero, short copy and a **Leave a wish** call to action (see `DESIGN.md` §5.5).
 
-Optional slow auto-rotation is governed by `DESIGN.md` §5.4; manual control must always remain available.
+Automatic wish rotation is **deferred and not implemented in v2**: the featured wish changes only when the visitor selects **Read another wish**. If rotation is added later it is governed by `DESIGN.md` §5.4, and manual control must always remain available.
 
 ---
 
@@ -263,11 +263,11 @@ The control is a real `<button>`; keyboard accessible; visible focus state; acce
 
 - The landing page's first wish is a manually selected featured wish, chosen to establish the site's emotional tone (see `DESIGN.md` §5.3).
 - Stored via an `is_featured` flag on the `wishes` table (`INTEGER NOT NULL DEFAULT 0`).
-- Application logic ensures **at most one** wish is featured at any time (setting a featured wish clears the flag on all others, in one transaction).
+- **At most one** wish is featured at any time: application logic clears the flag on all others in one transaction when a featured wish is set, and a partial unique index (`idx_wishes_single_featured`) enforces it in the database.
 - No admin UI in v2. The featured wish is set by seed/initialization or a one-off script.
 - `GET /api/wishes/featured` returns `{ "wish": { "id", "text", "created_at" } }`, or `{ "wish": null }` if none is flagged. The featured flag itself is not part of public wish responses.
 - If no featured wish exists, the landing page falls back to a random wish; if the database is empty, it shows the empty state.
-- Initialization must ensure a featured wish exists on a fresh database (via FR-008). How an *existing* database obtains its featured wish is defined in the migration strategy (README / implementation plan) and requires approval before any data change.
+- Initialization ensures a featured wish exists, on every startup, with this rule: **if any wish is already featured, nothing changes** (an existing featured wish is never replaced or reset to the initial one). Only when no wish is featured is the initial featured wish text flagged, or inserted first if it does not exist. A fresh database gets it through seeding (FR-008); an existing database gets it through the additive migration. Nothing is ever deleted.
 - Phase 2 (reaction-based featuring) is deferred.
 
 ---
@@ -323,7 +323,7 @@ GET /api/wishes/random?count=1&exclude=12
 }
 ```
 
-- `count` defaults to 3; clamped to 1–10 (Explore requests 6).
+- `count` defaults to 3 when omitted or non-numeric; a numeric value below 1 is raised to 1 and above 10 is lowered to 10 (Explore requests 6).
 - Optional `exclude` (positive integer wish id) omits that wish from results; an invalid `exclude` is ignored.
 - Invalid values handled safely. Responses contain no reaction data and no `is_featured`.
 
@@ -357,7 +357,7 @@ See FR-010.
 
 ### GET `/api/health`
 
-`{ "status": "ok", "wishCount": 20 }`. On error returns a generic message, not internal error text.
+`{ "status": "ok", "wishCount": 20 }`. On error returns `{ "status": "error" }` with HTTP 500, never internal error text.
 
 ---
 
@@ -374,7 +374,7 @@ CREATE TABLE wishes (
 );
 ```
 
-Note: the existing live table was created with `created_at DATETIME DEFAULT CURRENT_TIMESTAMP` (without `NOT NULL`). This drift is tolerated; no table rebuild is required.
+Note: the implemented `created_at` column is `DATETIME DEFAULT CURRENT_TIMESTAMP` without `NOT NULL`, for fresh and migrated databases alike (the MVP created it that way and no table rebuild is performed). The `wishes` table also has the partial unique index `idx_wishes_single_featured` on `is_featured WHERE is_featured = 1`.
 
 ### `wish_reactions`
 
@@ -405,6 +405,7 @@ Reaction totals are never stored on `wishes` and never exposed publicly.
 - **SR-003 Backend validation** — every input rule is enforced on the backend independently of the frontend.
 - **SR-004 Error exposure** — no stack traces, file paths, database internals, secrets, or raw `err.message` in responses (including `/api/health`).
 - **SR-005 Reaction privacy** — raw visitor keys are never stored or logged; no reaction totals in any response.
+- **SR-006 Failure containment** — a failing database operation (including an insert) returns the normal generic HTTP 500 response and must never crash the server process.
 
 ---
 
@@ -440,38 +441,45 @@ The UI gracefully handles API failure, database failure, invalid submission, emp
 
 ## 12. Project Structure
 
-Target v2 structure:
+Current structure (the exact file split may differ if it stays simple and clearly organized):
 
 ```text
 /
 ├── package.json
 ├── server.js
 ├── database.js
-├── seed.js
+├── seedData.js            (seed wishes and the initial featured wish)
+├── seed.js                (manual, idempotent seed script)
+├── .gitignore             (database files are ignored)
+├── PROJECT_STATE.md       (start here: concise current-state summary)
 ├── REQUIREMENT.md
 ├── DESIGN.md
+├── ROADMAP.md
 ├── README.md
 ├── CLAUDE.md
 ├── AGENTS.md
+├── test/                  (node:test regression tests)
+├── test-utils/            (isolation helpers, spawn helper, npm test runner)
 ├── public/
 │   ├── index.html          (landing)
 │   ├── wishes.html         (explore)
 │   ├── make-a-wish.html
 │   ├── about.html
 │   ├── 404.html
+│   ├── favicon.svg
 │   ├── styles.css
 │   └── js/                 (shared + per-page scripts)
 └── data/
-    └── wishes.db           (created at runtime)
+    └── wishes.db           (local development database; git-ignored; created at runtime)
 ```
 
-The exact file split may differ if it stays simple and clearly organized.
+Historical documents `gap_analysis.md` and `IMPLEMENTATION_SUMMARY.md` describe the old MVP only and are not requirements.
 
 ---
 
 ## 13. README Requirements
 
-The README explains: what Hidden Wishes is; technology; project structure; prerequisites; installation; running locally; default URL; pages/routes; API endpoints; database location, schema and migration approach; first-run seeding behavior; known limitations. It must agree with this document and the code.
+The README explains: what Hidden Wishes is; technology; project structure; prerequisites; installation; running locally; default URL; pages/routes; API endpoints; database location (`DB_PATH`), schema and migration approach; first-run seeding behavior; how to run the tests; known limitations. It must agree with this document and the code.
 
 ---
 
@@ -531,7 +539,8 @@ Possible later improvements (not part of v2):
 - Stronger server-side reaction abuse prevention.
 - Content reporting, moderation tools, rate limiting, spam protection, harmful-content filtering.
 - Wish categories, languages, search, shareable anonymous wish links.
-- Production hosting/database, backups, automated tests, CI/CD, monitoring.
+- Production hosting/database and domain, backups, browser-level end-to-end tests, CI/CD, monitoring. (HTTP/database/unit-style automated tests exist; see `npm test`.)
+- Salting the reaction visitor-key hash with a server-side secret (currently plain SHA-256).
 
 ---
 
@@ -543,5 +552,6 @@ Possible later improvements (not part of v2):
 - Keep frontend and backend validation consistent.
 - Preserve working backend and database behavior; make schema changes additive.
 - Never expose reaction totals; never add social mechanics listed in §15.
-- Test existing behavior after meaningful changes.
+- Run `npm test` after meaningful backend changes. Tests use isolated temporary databases and must never run against the development database.
+- Do not delete, rewrite, or untrack database files, or rewrite Git history, without explicit approval.
 - Update this document when product behavior intentionally changes.
